@@ -124,9 +124,7 @@ public class UDPclient {
     private static String sendAndReceive(DatagramSocket socket, InetAddress address, int port, String request) throws IOException {
         byte[] sendData = request.getBytes();
         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
-        byte[] receiveData = new byte[2048];
-        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-
+        
         int retries = 0;
         int currentTimeout = TIMEOUT;
         while (retries < MAX_RETRIES) {
