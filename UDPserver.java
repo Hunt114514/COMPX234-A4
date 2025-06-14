@@ -24,7 +24,7 @@ public class UDPserver {
             welcomeSocket.receive(receivePacket);
 
             String request = new String(receivePacket.getData(), 0, receivePacket.getLength()).trim();
-            System.out.println("Received: <" + request + ">"); // Debug output
+            System.out.println("Received: <" + request + ">"); 
             if (!request.startsWith("DOWNLOAD ")) {
                 continue;
             }
@@ -55,7 +55,7 @@ public class UDPserver {
             while (true) {
                 fileSocket.receive(receivePacket);
                 String request = new String(receivePacket.getData(), 0, receivePacket.getLength()).trim();
-                System.out.println("Received: <" + request + ">"); // Debug output
+                System.out.println("Received: <" + request + ">");
 
                 String[] parts = request.split("\\s+");
                 if (parts.length < 2 || !parts[0].equals("FILE") || !parts[1].equals(filename)) {
@@ -83,7 +83,7 @@ public class UDPserver {
                     responseBuilder.append("FILE ").append(filename).append(" OK START ").append(start)
                                   .append(" END ").append(end).append(" DATA ").append(base64Data);
                     response = responseBuilder.toString();
-                    System.out.println("Sending: <" + response + "> (Base64 length: " + base64Data.length() + ")"); // Debug output
+                    System.out.println("Sending: <" + response + "> (Base64 length: " + base64Data.length() + ")"); 
                     DatagramPacket sendPacket = new DatagramPacket(response.getBytes(), response.length(),
                             receivePacket.getAddress(), receivePacket.getPort());
                     fileSocket.send(sendPacket);
@@ -102,6 +102,6 @@ public class UDPserver {
         DatagramSocket socket = new DatagramSocket();
         socket.send(sendPacket);
         socket.close();
-        System.out.println("Sent: <" + response + ">"); // Debug output
+        System.out.println("Sent: <" + response + ">"); 
     }
 }
