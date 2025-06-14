@@ -33,3 +33,22 @@ public class UDPserver {
             new Thread(() -> handleFileTransmission(receivePacket, filename)).start();
         }
     }
+    private static void handleFileTransmission(DatagramPacket clientPacket, String filename) {
+        try {
+            File file = new File(filename);
+            if (!file.exists()) {
+                sendResponse(clientPacket, "ERR " + filename + " NOT_FOUND");
+                return;
+            }
+
+            Random random = new Random();
+            int filePort = MIN_PORT + random.nextInt(MAX_PORT - MIN_PORT + 1);
+            DatagramSocket fileSocket = new DatagramSocket(filePort);
+
+            long fileSize = file.length();
+            String response = String.format("OK %s SIZE %d PORT %d", filename, fileSize, filePort);
+            sendResponse(clientPacket, response);
+
+            RandomAccessFile raf = new RandomAccessFile(file, "r");
+            byte[] receiveData = new byte[2048];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
