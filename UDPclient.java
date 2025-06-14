@@ -2,12 +2,12 @@ import java.net.*;
 import java.io.*;
 import java.util.Base64;
 public class UDPclient {
-    private static final int TIMEOUT = 1000; // Initial timeout (milliseconds)
-    private static final int MAX_RETRIES = 5; // Maximum retry attempts
-    private static final int MAX_BLOCK_SIZE = 1000; // Maximum block size in bytes
+    private static final int TIMEOUT = 1000; 
+    private static final int MAX_RETRIES = 5; 
+    private static final int MAX_BLOCK_SIZE = 1000; 
 
     public static void main(String[] args) throws IOException {
-        // Verify command line arguments
+      
         if (args.length != 3) {
             System.err.println("Usage: java UDPclient <hostname> <port> <files.txt>");
             System.exit(1);
@@ -17,7 +17,6 @@ public class UDPclient {
         int port = Integer.parseInt(args[1]);
         String fileList = args[2];
 
-        // Open file list
         BufferedReader fileReader;
         try {
             fileReader = new BufferedReader(new FileReader(fileList));
@@ -26,11 +25,11 @@ public class UDPclient {
             return;
         }
 
-        // Create UDP socket
+     
         DatagramSocket socket = new DatagramSocket();
         InetAddress serverAddress = InetAddress.getByName(hostname);
 
-        // Process files in the list sequentially
+       
         String filename;
         while ((filename = fileReader.readLine()) != null) {
             filename = filename.trim();
@@ -41,16 +40,16 @@ public class UDPclient {
         fileReader.close();
         socket.close();
     }
-    // Download a single file
+  
     private static void downloadFile(DatagramSocket socket, InetAddress serverAddress, int port, String filename) throws IOException {
-        // Send DOWNLOAD request
+    
         String response = sendAndReceive(socket, serverAddress, port, "DOWNLOAD " + filename);
         if (response == null || response.startsWith("ERR")) {
             System.out.println("\nError: " + (response != null ? response : "No response from server"));
             return;
         }
 
-        // Parse OK response: OK <filename> SIZE <size_bytes> PORT <port_number>
+       
         String[] parts = response.trim().split("\\s+");
         if (parts.length != 6 || !parts[0].equals("OK")) {
             System.out.println("\nInvalid response: " + response + ", parts: " + Arrays.toString(parts));
@@ -60,11 +59,9 @@ public class UDPclient {
         long fileSize = Long.parseLong(parts[3]);
         int filePort = Integer.parseInt(parts[5]);
         System.out.println("Size: " + fileSize + " bytes, Port: " + filePort);
-
-        // Use RandomAccessFile to write file
+      
         RandomAccessFile raf = new RandomAccessFile(filename, "rw");
 
-        // Download file in blocks
         long currentByte = 0;
         while (currentByte < fileSize) {
             long endByte = Math.min(currentByte + MAX_BLOCK_SIZE - 1, fileSize - 1);
@@ -76,8 +73,7 @@ public class UDPclient {
                 raf.close();
                 return;
             }
-                        // Parse data block: FILE <filename> OK START <start> END <end> DATA <encoded_data>
-            // Extract DATA field manually to handle spaces in Base64
+                       
             String[] dataParts = response.trim().split("\\s+");
             if (dataParts.length < 7 || !dataParts[0].equals("FILE") || !dataParts[1].equals(filename) ||
                 !dataParts[2].equals("OK") || !dataParts[3].equals("START") || !dataParts[5].equals("END")) {
@@ -86,7 +82,6 @@ public class UDPclient {
                 return;
             }
 
-            // Extract Base64 data as everything after "DATA"
             int dataIndex = response.indexOf("DATA");
             if (dataIndex == -1 || dataIndex + 5 >= response.length()) {
                 System.out.println("\nInvalid block response: No DATA field in " + response);
@@ -94,8 +89,6 @@ public class UDPclient {
                 return;
             }
             String base64Data = response.substring(dataIndex + 5).trim();
-
-            // Decode Base64 data and write to file
             byte[] data;
             try {
                 data = Base64.getDecoder().decode(base64Data);
@@ -110,7 +103,6 @@ public class UDPclient {
             currentByte = startByte + data.length;
             System.out.print("*");
         }
-
         // Send CLOSE request
         response = sendAndReceive(socket, serverAddress, filePort, "FILE " + filename + " CLOSE");
         if (response == null || !response.equals("FILE " + filename + " CLOSE_OK")) {
@@ -120,7 +112,6 @@ public class UDPclient {
         }
         raf.close();
     }
-    // Send request and wait for response with timeout and retry
     private static String sendAndReceive(DatagramSocket socket, InetAddress address, int port, String request) throws IOException {
         byte[] sendData = request.getBytes();
         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
